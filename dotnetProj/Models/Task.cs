@@ -7,8 +7,14 @@ namespace dotnetProj.Models
     {
         public string Id { get; set; } = null!;
         public string OwnerId { get; set; } = null!;
-        public long Status { get; set; }
+        public string Status { get; set; } = null!;
+        public string Type { get; set; }
+        public string? Description { get; set; }
+        public string? Size { get; set; }
+        public string? Course { get; set; }
+        public string? DueDate { get; set; }
+        public string? Details { get; set; }
 
-        public virtual Person Owner { get; set; } = null!;
+        public virtual Person? Owner { get; set; } = null!;
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace dotnetProj.Models
 {
@@ -23,7 +20,7 @@ namespace dotnetProj.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlite("datasource=C:\\Users\\nogasacks\\source\\repos\\dotnetProj\\MyDatabase.db"); //TODO make relative path
+                optionsBuilder.UseSqlite("DataSource=C:\\Users\\nogasacks\\Source\\Repos\\miniproj-zederman\\dotnetProj\\MyDatabase.db ");
             }
         }
 

@@ -21,13 +21,6 @@ namespace dotnetProj.Controllers
             _context = context;
         }
 
-        // GET: api/Tasks
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Models.Task>>> GetTasks()
-        {
-            return await _context.Tasks.ToListAsync();
-        }
-
         // GET: api/Tasks/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Models.Task>> GetTask(string id)

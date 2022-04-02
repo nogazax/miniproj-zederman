@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddEntityFrameworkSqlite().AddDbContext<MyDatabaseContext>();
+    builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 
 
 var app = builder.Build();
