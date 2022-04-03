@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace dotnetProj.Models
 {
-    public partial class Task
+    public partial class NoIdOwnerIdTask
     {
-        public string Id { get; set; } = null!;
-        public string OwnerId { get; set; } = null!;
         public string Status { get; set; } = null!;
         public string Type { get; set; } = null!;
         public string? Description { get; set; }
@@ -14,7 +10,5 @@ namespace dotnetProj.Models
         public string? Course { get; set; }
         public string? DueDate { get; set; }
         public string? Details { get; set; }
-
-        public virtual Person Owner { get; set; } = null!;
     }
 }

@@ -70,30 +70,29 @@ namespace dotnetProj.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
 
-        public async Task<ActionResult<Models.Task>> AddChore([FromBody] Models.Task noIdPerson) //check why returned 201 is uncodumented
+        public async Task<ActionResult<Models.Task>> AddChore(string id, [FromBody] NoIdOwnerIdTask task) //check why returned 201 is uncodumented
         {
-            var person = new Person();
-            var WithId = _mapper.Map<Person>(person);
-            WithId.Id = Guid.NewGuid().ToString();
-            _context.People.Add(WithId);
+            var fullTask = _mapper.Map<Models.Task>(task);
+            fullTask.Id = Guid.NewGuid().ToString();
+            fullTask.OwnerId = id;
+            _context.Tasks.Add(fullTask);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (PersonExists(WithId.Id))
+                if (!PersonExists(id))
                 {
-                    return Conflict();
+                    return NotFound($"Person with Id {id} does not exist in the DB");
                 }
                 else
                 {
-                    return BadRequest("shshshs");
+                    return BadRequest();
                 }
             }
-            HttpContext.Response.Headers.Add("Location", $"https://localhost:9000/api/people/{WithId.Id}");
-            HttpContext.Response.Headers.Add("x-Created-Id", WithId.Id);
-            return StatusCode(201);
+            
+            return StatusCode(201, "OK");
         }
 
     
