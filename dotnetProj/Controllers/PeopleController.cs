@@ -2,10 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using dotnetProj.Models;
-using Newtonsoft.Json;
-using Microsoft.AspNetCore.JsonPatch;
 using AutoMapper;
-using System.Runtime.CompilerServices;
+using dotnetProj.TaskControllerHelper;
 
 namespace dotnetProj.Controllers
 {
@@ -75,7 +73,7 @@ namespace dotnetProj.Controllers
             var fullTask = _mapper.Map<Models.Task>(task);
             fullTask.Id = Guid.NewGuid().ToString();
             fullTask.OwnerId = id;
-            if (!IsValidTask(fullTask))
+            if (!TaskValidator.IsValidTask(fullTask))
 			{
                 return BadRequest("Task has missing fields");
 			}
@@ -100,30 +98,7 @@ namespace dotnetProj.Controllers
             return StatusCode(201, "Task created and assigned successfully");
         }
 
-		private bool IsValidTask(Models.Task task)
-		{
-            if (task.Status == null) //mutual data memeber
-			{
-                return false;
-			}
-			if (task.Type.Equals("Chore", StringComparison.OrdinalIgnoreCase)) //check chore fields are filled
-			{
-                return !IsChoreFieldsNull(task)&& IsHomeworkFieldsNull(task);
-                //task.Description != null && task.Size != null;
-			}
-            //check homework fields are filled
-            return IsChoreFieldsNull(task) && !IsHomeworkFieldsNull(task);
-		}
-
-		private bool IsHomeworkFieldsNull(Models.Task task)
-		{
-            return task.Course == null && task.DueDate == null && task.Details == null;
-        }
-
-		private bool IsChoreFieldsNull(Models.Task task)
-		{
-            return task.Description == null && task.Size == null;
-		}
+		
 
 
 

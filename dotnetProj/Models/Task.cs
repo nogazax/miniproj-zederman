@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace dotnetProj.Models
 {
     public partial class Task

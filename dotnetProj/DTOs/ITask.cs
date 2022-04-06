@@ -1,6 +1,9 @@
 ﻿namespace dotnetProj.Models
 {
-	public interface ITask
+	public class ITask
 	{
+		public string Id { get; set; } = null!;
+		public string OwnerId { get; set; } = null!;
+		public string Status { get; set; } = null!;
 	}
 }
