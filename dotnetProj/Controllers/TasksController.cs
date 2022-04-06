@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using dotnetProj.Models;
+using AutoMapper;
 
 namespace dotnetProj.Controllers
 {
@@ -16,14 +17,16 @@ namespace dotnetProj.Controllers
     {
         private readonly MyDatabaseContext _context;
 
-        public TasksController(MyDatabaseContext context)
+        private readonly IMapper _mapper;
+
+        public TasksController(MyDatabaseContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
-
         // GET: api/Tasks/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Models.Task>> GetTask(string id)
+        public async Task<ActionResult<ITask>> GetTask(string id)
         {
             var task = await _context.Tasks.FindAsync(id);
 
@@ -31,8 +34,11 @@ namespace dotnetProj.Controllers
             {
                 return NotFound();
             }
-
-            return task;
+            if (task.Type.Equals("Chore", StringComparison.OrdinalIgnoreCase))
+			{
+                return _mapper.Map<Chore>(task);
+			}
+            return _mapper.Map<HomeWork>(task);
         }
 
         // PUT: api/Tasks/5

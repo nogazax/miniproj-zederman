@@ -75,6 +75,10 @@ namespace dotnetProj.Controllers
             var fullTask = _mapper.Map<Models.Task>(task);
             fullTask.Id = Guid.NewGuid().ToString();
             fullTask.OwnerId = id;
+            if (!IsValidTask(fullTask))
+			{
+                return BadRequest("Task has missing fields");
+			}
             _context.Tasks.Add(fullTask);
             try
             {
@@ -88,17 +92,43 @@ namespace dotnetProj.Controllers
                 }
                 else
                 {
-                    return BadRequest();
+                    return BadRequest("data contains illegal values");
                 }
             }
-            
-            return StatusCode(201, "OK");
+            HttpContext.Response.Headers.Add("Location", $"https://localhost:9000/api/tasks/{fullTask.Id}");
+            HttpContext.Response.Headers.Add("x-Created-Id", fullTask.Id);
+            return StatusCode(201, "Task created and assigned successfully");
         }
 
-    
+		private bool IsValidTask(Models.Task task)
+		{
+            if (task.Status == null) //mutual data memeber
+			{
+                return false;
+			}
+			if (task.Type.Equals("Chore", StringComparison.OrdinalIgnoreCase)) //check chore fields are filled
+			{
+                return !IsChoreFieldsNull(task)&& IsHomeworkFieldsNull(task);
+                //task.Description != null && task.Size != null;
+			}
+            //check homework fields are filled
+            return IsChoreFieldsNull(task) && !IsHomeworkFieldsNull(task);
+		}
 
-        // POST: api/people
-        [HttpPost]
+		private bool IsHomeworkFieldsNull(Models.Task task)
+		{
+            return task.Course == null && task.DueDate == null && task.Details == null;
+        }
+
+		private bool IsChoreFieldsNull(Models.Task task)
+		{
+            return task.Description == null && task.Size == null;
+		}
+
+
+
+		// POST: api/people
+		[HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<Person>> PostPerson(NoIdPerson person) //check why returned 201 is uncodumented
