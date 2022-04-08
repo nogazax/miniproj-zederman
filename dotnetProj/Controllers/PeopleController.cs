@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using dotnetProj.Models;
 using AutoMapper;
 using dotnetProj.TaskControllerHelper;
+using dotnetProj.PeopleControllerHelper;
 
 namespace dotnetProj.Controllers
 {
@@ -19,6 +20,34 @@ namespace dotnetProj.Controllers
         {
             _context = context;
             _mapper = mapper;
+        }
+        // POST: api/people
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Person>> PostPerson(NoIdPerson person) 
+        {
+            var WithIdPerson = _mapper.Map<Person>(person);
+            WithIdPerson.Id = Guid.NewGuid().ToString();
+            _context.People.Add(WithIdPerson);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (PeopleValidator.PersonExists(WithIdPerson.Id, _context))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    return BadRequest("Invalid fields");
+                }
+            }
+            HttpContext.Response.Headers.Add("Location", $"https://localhost:9000/api/people/{WithIdPerson.Id}");
+            HttpContext.Response.Headers.Add("x-Created-Id", WithIdPerson.Id);
+            return StatusCode(201);
         }
 
         // GET: api/people
@@ -84,7 +113,7 @@ namespace dotnetProj.Controllers
             }
             catch (DbUpdateException)
             {
-                if (!PersonExists(id))
+                if (!PeopleValidator.PersonExists(id,_context))
                 {
                     return NotFound($"Person with Id {id} does not exist in the DB");
                 }
@@ -102,34 +131,7 @@ namespace dotnetProj.Controllers
 
 
 
-		// POST: api/people
-		[HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Person>> PostPerson(NoIdPerson person) //check why returned 201 is uncodumented
-        {
-            var WithId = _mapper.Map<Person>(person);
-            WithId.Id = Guid.NewGuid().ToString();
-            _context.People.Add(WithId);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-				if (PersonExists(WithId.Id))
-				{
-					return Conflict();
-				}
-				else
-				{
-                    return BadRequest("shshshs");
-                }
-            }
-            HttpContext.Response.Headers.Add("Location",$"https://localhost:9000/api/people/{WithId.Id}");
-            HttpContext.Response.Headers.Add("x-Created-Id", WithId.Id);
-            return StatusCode(201);
-        }
+		
 
 
         // PATCH: api/people/{id}
@@ -190,9 +192,5 @@ namespace dotnetProj.Controllers
             return Ok();
         }
 
-        private bool PersonExists(string id)
-        {
-            return _context.People.Any(e => e.Id == id);
-        }
     }
 }

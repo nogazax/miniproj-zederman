@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace dotnetProj.Models
+﻿namespace dotnetProj.Models
 {
     public partial class HomeWork : ITask
     {

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using dotnetProj.Models;
 using AutoMapper;
 using dotnetProj.TaskControllerHelper;
+using dotnetProj.PeopleControllerHelper;
 
 namespace dotnetProj.Controllers
 {
@@ -36,9 +36,24 @@ namespace dotnetProj.Controllers
             return _mapper.Map<HomeWork>(task);
         }
 
+         [HttpGet("{id}/owner")]
+        public async Task<ActionResult<string>> GetOwnerId(string id)
+        {
+            var task = await _context.Tasks.FindAsync(id);
+
+            if (task == null)
+            {
+                return NotFound($"A task with the id {id} does not exist.");
+            }
+            return Ok(task.OwnerId); //TODO verify if we need to return JSON or just string
+        }
+
         // GET: api/Tasks/5/status
         [HttpGet("{id}/status")]
-        public async Task<ActionResult<ITask>> GetTaskStatus(string id)
+        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+
+        public async Task<ActionResult<string>> GetTaskStatus(string id)
         {
             var task = await _context.Tasks.FindAsync(id);
 
@@ -96,7 +111,6 @@ namespace dotnetProj.Controllers
 				}
             }
 
-            // moving hw-chore change
 
             else //changing type of task
             {
@@ -147,8 +161,7 @@ namespace dotnetProj.Controllers
         }
 
         // PUT: api/Tasks/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+        [HttpPut("{id}/status")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -172,31 +185,36 @@ namespace dotnetProj.Controllers
             }
             return NoContent();
         }
-    
 
-        // POST: api/Tasks
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Models.Task>> PostTask(Models.Task task)
+        [HttpPut("{id}/owner")]
+        [ProducesResponseType(typeof(string),StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+
+        public async Task<ActionResult<string>> ChangeTaskOwner(string id, [FromBody] string newOwnerId)
         {
-            _context.Tasks.Add(task);
+            var task = await _context.Tasks.FindAsync(id);
+            if (task == null)
+            {
+                return NotFound($"A task with the id {id} does not exist.");
+            }
+            
+            if (!PeopleValidator.PersonExists(newOwnerId, _context))
+			{
+                return NotFound($"Person with Id {id} does not exist in the DB");
+			}
+
+            task.OwnerId = newOwnerId;
+            task.Owner = await _context.People.FindAsync(newOwnerId);
+
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException)
+            catch (Exception)
             {
-                if (TaskExists(task.Id))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return BadRequest("DB threw an unexpected error");
             }
-
-            return CreatedAtAction("GetTask", new { id = task.Id }, task);
+            return NoContent();
         }
 
         // DELETE: api/Tasks/5
@@ -208,17 +226,10 @@ namespace dotnetProj.Controllers
             {
                 return NotFound();
             }
-
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
 
             return NotFound($"A task with the id {id} does not exist.");
-
-        }
-
-        private bool TaskExists(string id)
-        {
-            return _context.Tasks.Any(e => e.Id == id);
         }
     }
 }
