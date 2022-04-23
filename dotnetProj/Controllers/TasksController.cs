@@ -35,8 +35,9 @@ namespace dotnetProj.Controllers
 			}
             return _mapper.Map<HomeWork>(task);
         }
-
-         [HttpGet("{id}/owner")]
+        
+        // GET: api/Tasks/5/owner
+        [HttpGet("{id}/owner")]
         public async Task<ActionResult<string>> GetOwnerId(string id)
         {
             var task = await _context.Tasks.FindAsync(id);
@@ -109,6 +110,14 @@ namespace dotnetProj.Controllers
                     task.DueDate = PatchContent.DueDate != null ? PatchContent.DueDate.ToString().Split(' ')[0] : task.DueDate;
                     task.Details = PatchContent.Details ?? task.Details;
 				}
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception)
+                {
+                    return BadRequest("invalid fields");
+                }
             }
 
 
@@ -186,6 +195,8 @@ namespace dotnetProj.Controllers
             return NoContent();
         }
 
+
+        // PUT: api/Tasks/5/owner
         [HttpPut("{id}/owner")]
         [ProducesResponseType(typeof(string),StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -224,12 +235,19 @@ namespace dotnetProj.Controllers
             var task = await _context.Tasks.FindAsync(id);
             if (task == null)
             {
-                return NotFound();
+                return NotFound($"A task with the id: {id} does not exist.");
             }
             _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                return BadRequest($"Could not delete task with id: {id}");
+            }
 
-            return NotFound($"A task with the id {id} does not exist.");
+            return Ok();
         }
     }
 }

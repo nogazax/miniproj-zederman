@@ -5,6 +5,8 @@ using dotnetProj.Models;
 using AutoMapper;
 using dotnetProj.TaskControllerHelper;
 using dotnetProj.PeopleControllerHelper;
+using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace dotnetProj.Controllers
 {
@@ -32,6 +34,7 @@ namespace dotnetProj.Controllers
             _context.People.Add(WithIdPerson);
             try
             {
+                checkEmail(person.Email);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
@@ -45,9 +48,23 @@ namespace dotnetProj.Controllers
                     return BadRequest("Invalid fields");
                 }
             }
+
+            catch (ArgumentException)
+			{
+                return BadRequest("Invalid Email address");
+            }
+
             HttpContext.Response.Headers.Add("Location", $"https://localhost:9000/api/people/{WithIdPerson.Id}");
             HttpContext.Response.Headers.Add("x-Created-Id", WithIdPerson.Id);
             return StatusCode(201);
+        }
+
+		private void checkEmail(string? email)
+		{
+            if (email == null || new EmailAddressAttribute().IsValid(email))
+			{
+                throw new ArgumentException("invalid Email format");
+			}
         }
 
         // GET: api/people
@@ -79,25 +96,58 @@ namespace dotnetProj.Controllers
 
         // GET: api/People/{id}/tasks/ 
         [HttpGet("{id}/tasks")] //TODO check that works
-        public ActionResult<List<Models.Task>> GetPersonTasks(string id, string? status)
+        public ActionResult<List<ITask>> GetPersonTasks(string id, taskStatus? status)
         {
             var tasks = _context.Tasks.Where(t => t.OwnerId == id).ToList();
 
-            if (tasks == null)
+            if (tasks.Count == 0)
             {
-                return NotFound();
+                return NotFound($"Did not find any tasks for id: {id}");
+            }
+            
+            if (status != null)
+			{
+                tasks = tasks.Where(t => string.Equals(t.Status, status.ToString(),StringComparison.OrdinalIgnoreCase)).ToList();
+                if (tasks.Count == 0)
+                {
+                    return NotFound($"Did not find any tasks for id: {id}, with status: {status}");
+                }
             }
 
-            return tasks;
+            var ItaskList = GenerateItasks(tasks);
+            return ItaskList;
         }
 
+		private List<ITask> GenerateItasks(List<Models.Task> tasks)
+		{
+			var taskList = new List<ITask>();
+            foreach (var task in tasks)
+			{
+                if (task.Type.Equals("homework", StringComparison.OrdinalIgnoreCase))
+				{
+                    taskList.Add(_mapper.Map<HomeWork>(task));
+				}
+				else
+				{
+                    taskList.Add(_mapper.Map<Chore>(task));
+
+                }
+            }
+            return taskList;
+		}
+
+		public enum taskStatus
+		{
+            Active,
+            Done
+		}
         // POST: api/people/{id}/tasks
         [HttpPost("{id}/tasks")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
 
-        public async Task<ActionResult<Models.Task>> AddChore(string id, [FromBody] NoIdOwnerIdTask task) //check why returned 201 is uncodumented
+        public async Task<ActionResult<Models.Task>> AddChore(string id, [FromBody] NoIdOwnerIdTask task)
         {
             var fullTask = _mapper.Map<Models.Task>(task);
             fullTask.Id = Guid.NewGuid().ToString();
