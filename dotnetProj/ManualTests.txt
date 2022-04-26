@@ -1,4 +1,5 @@
-
+get/Api/People/id:
+- add active task count for person returned (use sql, not in-house)
 
 General notes:
 If I understand correctly, we are supposed to provide the text descreption of a success/failure and not just the error code (for example on Patch failure "A person with the id 'xxdrrf-2355f3f-e434d' does not exist."). this is missing on some of the endpoints.
