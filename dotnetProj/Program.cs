@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
-    builder.Services.AddEntityFrameworkSqlite().AddDbContext<MyDatabaseContext>();
+    builder.Services.AddEntityFrameworkSqlite().AddDbContext<SqlContext>();
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 
@@ -31,7 +31,7 @@ var app = builder.Build();
     app.UseAuthorization();
 
     app.MapControllers();
-    using (var client = new MyDatabaseContext())
+    using (var client = new SqlContext())
     {
         client.Database.EnsureCreated();
     }

@@ -14,11 +14,11 @@ namespace dotnetProj.Controllers
     [ApiController]
     public class PeopleController : ControllerBase
     {
-        private readonly MyDatabaseContext _context;
+        private readonly SqlContext _context;
 
         private readonly IMapper _mapper;
 
-        public PeopleController(MyDatabaseContext context, IMapper mapper)
+        public PeopleController(SqlContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;

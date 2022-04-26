@@ -2,7 +2,7 @@
 {
     public partial class NoIdOwnerIdTask
     {
-        public string Status { get; set; } = null!;
+        public string Status { get; set; } = "Active";
         public string Type { get; set; } = null!;
         public string? Description { get; set; }
         public string? Size { get; set; }

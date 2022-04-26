@@ -1,26 +1,28 @@
+
+
+General notes:
+If I understand correctly, we are supposed to provide the text descreption of a success/failure and not just the error code (for example on Patch failure "A person with the id 'xxdrrf-2355f3f-e434d' does not exist."). this is missing on some of the endpoints.
+
+
+===================================DONE STUFF=================================================
 POST/Api/People:
 -Should we verify Email to be legitimate? - Done
--We are not getting 400 "a person alredy exists" in a case where we are trying to create a person with the same fields in the DB - it has a unique id, why should we throw 400?
+-We are not getting 400 "a person alredy exists" in a case where we are trying to create a person with the same fields in the DB - Done, did nothing. two same persons can have identical values, they will differ by the id in the sql
+
+DELETE/api/tasks/id
+-deletes and gives "A task with the id 73b282c6-c7e1-4cde-8294-998e71bffd00 does not exist." 404 instead of 200 - Done
+
+PATCH/api/Tasks/id
+-does not patch field in DB (tried to patch a chore from active to done. got 200 success but no patch on DB is seen). - Done
 
 GET/api/people/id/tasks:
 -Filter by status does not working (filtering done still gives me active task) - Done
 -response of Chore includes also HW fields (null) - Done both ways
 -no 404 in case where id does not exists - Done
 
-POST/api/people/id/tasks
--no 400 in case where a task with the same fields already exists
--allows to create tasks with missing fields (for example chore without description where only missing status is allowed) instead of giving 400
-
-PATCH/api/Tasks/id
--does not patch field in DB (tried to patch a chore from active to done. got 200 success but no patch on DB is seen). - Done
-
-DELETE/api/tasks/id
--deletes and gives "A task with the id 73b282c6-c7e1-4cde-8294-998e71bffd00 does not exist." 404 instead of 200 - Done
-
 PUT/api/tasks/id/owner
--wrong error message where invalid OwnerID is given (displays taskID instead of ownerID)
+-wrong error message where invalid OwnerID is given (displays taskID instead of ownerID) - Done
 
-
-General notes:
-If I understand correctly, we are supposed to provide the text descreption of a success/failure and not just the error code (for example on Patch failure "A person with the id 'xxdrrf-2355f3f-e434d' does not exist."). this is missing on some of the endpoints.
-
+POST/api/people/id/tasks
+-no 400 in case where a task with the same fields already exists-  Done, did nothing. two same persons can have identical values, they will differ by the id in the sql
+-allows to create tasks with missing fields (for example chore without description where only missing status is allowed) instead of giving 400 - Done

@@ -10,20 +10,20 @@ namespace dotnetProj.Controllers
     [ApiController]
     public class TasksController : ControllerBase
     {
-        private readonly MyDatabaseContext _context;
+        private readonly SqlContext _dbContext;
 
         private readonly IMapper _mapper;
 
-        public TasksController(MyDatabaseContext context, IMapper mapper)
+        public TasksController(SqlContext context, IMapper mapper)
         {
-            _context = context;
+            _dbContext = context;
             _mapper = mapper;
         }
         // GET: api/Tasks/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ITask>> GetTask(string id)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _dbContext.Tasks.FindAsync(id);
 
             if (task == null)
             {
@@ -40,7 +40,7 @@ namespace dotnetProj.Controllers
         [HttpGet("{id}/owner")]
         public async Task<ActionResult<string>> GetOwnerId(string id)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _dbContext.Tasks.FindAsync(id);
 
             if (task == null)
             {
@@ -56,7 +56,7 @@ namespace dotnetProj.Controllers
 
         public async Task<ActionResult<string>> GetTaskStatus(string id)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _dbContext.Tasks.FindAsync(id);
 
             if (task == null)
             {
@@ -72,7 +72,7 @@ namespace dotnetProj.Controllers
 
         public async Task<ActionResult<ITask>> PatchTask(string id, [FromBody] NoIdTask PatchContent)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _dbContext.Tasks.FindAsync(id);
             if (task == null)
             {
                 return NotFound($"A task with the id {id} does not exist.");
@@ -112,7 +112,7 @@ namespace dotnetProj.Controllers
 				}
                 try
                 {
-                    await _context.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync();
                 }
                 catch (Exception)
                 {
@@ -128,7 +128,7 @@ namespace dotnetProj.Controllers
 				{
 					try
 					{
-                        await _context.SaveChangesAsync();
+                        await _dbContext.SaveChangesAsync();
 
                     }
                     catch (Exception)
@@ -164,7 +164,7 @@ namespace dotnetProj.Controllers
 
 		private async Task<bool> checkValidOwner(string ownerId)
 		{
-            var newOwner = await _context.People.FindAsync(ownerId);
+            var newOwner = await _dbContext.People.FindAsync(ownerId);
             return newOwner != null;
 
         }
@@ -177,7 +177,7 @@ namespace dotnetProj.Controllers
 
         public async Task<IActionResult> ChangeTaskStatus(string id, [FromBody] string status)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _dbContext.Tasks.FindAsync(id);
             if (task == null)
             {
                 return NotFound($"A task with the id {id} does not exist.");
@@ -186,7 +186,7 @@ namespace dotnetProj.Controllers
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception)
             {
@@ -203,23 +203,23 @@ namespace dotnetProj.Controllers
 
         public async Task<ActionResult<string>> ChangeTaskOwner(string id, [FromBody] string newOwnerId)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _dbContext.Tasks.FindAsync(id);
             if (task == null)
             {
                 return NotFound($"A task with the id {id} does not exist.");
             }
             
-            if (!PeopleValidator.PersonExists(newOwnerId, _context))
+            if (!PeopleValidator.PersonExists(newOwnerId, _dbContext))
 			{
-                return NotFound($"Person with Id {id} does not exist in the DB");
+                return NotFound($"Person with Id {newOwnerId} does not exist in the DB");
 			}
 
             task.OwnerId = newOwnerId;
-            task.Owner = await _context.People.FindAsync(newOwnerId);
+            task.Owner = await _dbContext.People.FindAsync(newOwnerId);
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception)
             {
@@ -232,15 +232,15 @@ namespace dotnetProj.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(string id)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _dbContext.Tasks.FindAsync(id);
             if (task == null)
             {
                 return NotFound($"A task with the id: {id} does not exist.");
             }
-            _context.Tasks.Remove(task);
+            _dbContext.Tasks.Remove(task);
             try
             {
-                await _context.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception)
             {

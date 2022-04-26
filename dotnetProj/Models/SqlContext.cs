@@ -2,13 +2,13 @@
 
 namespace dotnetProj.Models
 {
-    public partial class MyDatabaseContext : DbContext
+    public partial class SqlContext : DbContext
     {
-        public MyDatabaseContext()
+        public SqlContext()
         {
         }
 
-        public MyDatabaseContext(DbContextOptions<MyDatabaseContext> options)
+        public SqlContext(DbContextOptions<SqlContext> options)
             : base(options)
         {
         }
