@@ -7,5 +7,6 @@ namespace dotnetProj.Models
         public string? Email { get; set; } = null!;
         public string? Name { get; set; } = null!;
         public string? FavoriteProgrammingLanguage { get; set; } = null!;
+        public int? ActiveTaskCount { get; set; } = 0!;
     }
 }

@@ -61,7 +61,7 @@ namespace dotnetProj.Controllers
 
 		private void checkEmail(string? email)
 		{
-            if (email == null || new EmailAddressAttribute().IsValid(email))
+            if (email == null || !(new EmailAddressAttribute().IsValid(email)))
 			{
                 throw new ArgumentException("invalid Email format");
 			}
@@ -72,8 +72,13 @@ namespace dotnetProj.Controllers
         public async Task<ActionResult<IEnumerable<NoTasksPerson>>> GetPeople()
         {
 
-            var people = await _context.People.ToListAsync();
-            return Ok(people.Select(person => _mapper.Map<NoTasksPerson>(person)));
+            var people = (await _context.People.ToListAsync()).Select(person => _mapper.Map<NoTasksPerson>(person)).ToList();
+            var tasks = await _context.Tasks.ToListAsync();
+            foreach (var person in people)
+			{
+                person.ActiveTaskCount =  tasks.FindAll(task => task.OwnerId.Equals(person.Id)).Count();
+            }
+            return Ok(people);
         }
 
         // GET: api/people/{id}
@@ -90,7 +95,8 @@ namespace dotnetProj.Controllers
             {
                 return NotFound();
             }
-
+            var tasks = await _context.Tasks.ToListAsync();
+            person.ActiveTaskCount = tasks.FindAll(task => task.OwnerId.Equals(person.Id)).Count();
             return person;
         }
 
