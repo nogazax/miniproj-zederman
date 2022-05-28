@@ -11,6 +11,14 @@ var builder = WebApplication.CreateBuilder();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(builder =>
+        {
+		builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders(new string[]  { "Location", "x-Created-Id" });
+        }
+        );
+    });
     builder.Services.AddEntityFrameworkSqlite().AddDbContext<SqlContext>();
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -18,9 +26,10 @@ var builder = WebApplication.CreateBuilder();
 
 
 var app = builder.Build();
+app.UseCors();
 
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI();

@@ -7,6 +7,7 @@ using dotnetProj.TaskControllerHelper;
 using dotnetProj.PeopleControllerHelper;
 using System.ComponentModel.DataAnnotations;
 using System;
+using Microsoft.AspNetCore.Cors;
 
 namespace dotnetProj.Controllers
 {
@@ -14,6 +15,7 @@ namespace dotnetProj.Controllers
     [ApiController]
     public class PeopleController : ControllerBase
     {
+
         private readonly SqlContext _context;
 
         private readonly IMapper _mapper;
@@ -26,43 +28,44 @@ namespace dotnetProj.Controllers
         // POST: api/people
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Person>> PostPerson(NoIdPerson person) 
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Nullable))]
+        public async Task<IActionResult> PostPerson(NoIdPerson person) 
         {
             var WithIdPerson = _mapper.Map<Person>(person);
             WithIdPerson.Id = Guid.NewGuid().ToString();
             _context.People.Add(WithIdPerson);
             try
             {
-                checkEmail(person.Email);
+                checkEmail(person.Emails);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
                 if (PeopleValidator.PersonExists(WithIdPerson.Id, _context))
                 {
-                    return Conflict();
+                    return StatusCode(400,"Conflict with id of two persons");
                 }
                 else
                 {
-                    return BadRequest("Invalid fields");
+                    return StatusCode(400,"Required data fields are missing");
+
                 }
             }
 
             catch (ArgumentException)
 			{
-                return BadRequest("Invalid Email address");
+                return StatusCode(400,"Invalid Email address");
             }
-
             HttpContext.Response.Headers.Add("Location", $"https://localhost:9000/api/people/{WithIdPerson.Id}");
             HttpContext.Response.Headers.Add("x-Created-Id", WithIdPerson.Id);
-            return StatusCode(201);
+            return StatusCode(201, "Person created successfully");
         }
 
 		private void checkEmail(string? email)
 		{
             if (email == null || !(new EmailAddressAttribute().IsValid(email)))
 			{
+				Console.WriteLine("invalid email");
                 throw new ArgumentException("invalid Email format");
 			}
         }
@@ -83,10 +86,8 @@ namespace dotnetProj.Controllers
 
         // GET: api/people/{id}
         [HttpGet("{id}")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(NoTasksPerson))]
-
-
         public async Task<ActionResult<NoTasksPerson>> GetPerson(string id)
         {
             var person = _mapper.Map<NoTasksPerson>(await _context.People.FindAsync(id));
@@ -97,11 +98,13 @@ namespace dotnetProj.Controllers
             }
             var tasks = await _context.Tasks.ToListAsync();
             person.ActiveTaskCount = tasks.FindAll(task => task.OwnerId.Equals(person.Id)).Count();
-            return person;
+            return Ok(person);
         }
 
         // GET: api/People/{id}/tasks/ 
         [HttpGet("{id}/tasks")] //TODO check that works
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ITask))]
         public ActionResult<List<ITask>> GetPersonTasks(string id, taskStatus? status)
         {
             var tasks = _context.Tasks.Where(t => t.OwnerId == id).ToList();
@@ -192,7 +195,7 @@ namespace dotnetProj.Controllers
 
         // PATCH: api/people/{id}
         [HttpPatch("{id}")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status200OK)]
 
         public async Task<ActionResult<NoTasksPerson>> PatchPerson(string id, [FromBody] NoIdPerson noIdPerson)
@@ -200,11 +203,12 @@ namespace dotnetProj.Controllers
             var person = await _context.People.FindAsync(id);
             if (person == null)
             {
-                return NotFound();
+                return NotFound($"Requested person is not present, with id {id}.");
             }
 
-            if (!string.IsNullOrEmpty(noIdPerson.Email)){
-                person.Email = noIdPerson.Email;
+            if (!string.IsNullOrEmpty(noIdPerson.Emails)){
+                checkEmail(noIdPerson.Emails);
+                person.Emails = noIdPerson.Emails;
 			}
             if (!string.IsNullOrEmpty(noIdPerson.Name))
 			{
@@ -224,13 +228,17 @@ namespace dotnetProj.Controllers
 
 
         // DELETE: api/people/{id} 
-        [HttpDelete("{id}")] //TODO check if works
+
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+
         public async Task<IActionResult> DeletePerson(string id)
         {
             var person = await _context.People.FindAsync(id);
             if (person == null)
             {
-                return NotFound();
+                return NotFound($"Requested person is not present, with id {id}.");
             }
             var tasksForId = await _context.Tasks.ToListAsync();
 
@@ -245,7 +253,7 @@ namespace dotnetProj.Controllers
             _context.People.Remove(person);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok($"removed person with id {id}.");
         }
 
     }

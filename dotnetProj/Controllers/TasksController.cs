@@ -27,7 +27,7 @@ namespace dotnetProj.Controllers
 
             if (task == null)
             {
-                return NotFound();
+                return NotFound($"A task with the id {id} does not exist.");
             }
             if (task.Type.Equals("Chore", StringComparison.OrdinalIgnoreCase))
 			{
@@ -38,6 +38,8 @@ namespace dotnetProj.Controllers
         
         // GET: api/Tasks/5/owner
         [HttpGet("{id}/owner")]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         public async Task<ActionResult<string>> GetOwnerId(string id)
         {
             var task = await _dbContext.Tasks.FindAsync(id);
@@ -67,7 +69,7 @@ namespace dotnetProj.Controllers
 
         // PATCH: api/tasks/{id}
         [HttpPatch("{id}")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status200OK)]
 
         public async Task<ActionResult<ITask>> PatchTask(string id, [FromBody] NoIdTask PatchContent)
@@ -171,9 +173,9 @@ namespace dotnetProj.Controllers
 
         // PUT: api/Tasks/5
         [HttpPut("{id}/status")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
 
         public async Task<IActionResult> ChangeTaskStatus(string id, [FromBody] string status)
         {
@@ -230,6 +232,8 @@ namespace dotnetProj.Controllers
 
         // DELETE: api/Tasks/5
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteTask(string id)
         {
             var task = await _dbContext.Tasks.FindAsync(id);
@@ -247,7 +251,7 @@ namespace dotnetProj.Controllers
                 return BadRequest($"Could not delete task with id: {id}");
             }
 
-            return Ok();
+            return Ok("Task removed successfully.");
         }
     }
 }
