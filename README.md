@@ -1,4 +1,7 @@
 How to run this project:
+
+Open CMD\shell\communication with god
+
 1. Clone the git repository:
 
 Git clone https://github.com/nogazax/miniproj-zederman.git
