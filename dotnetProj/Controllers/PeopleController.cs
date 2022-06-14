@@ -36,7 +36,7 @@ namespace dotnetProj.Controllers
             _context.People.Add(WithIdPerson);
             try
             {
-                checkEmail(person.Emails);
+                checkEmail(person.Email);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
@@ -206,9 +206,9 @@ namespace dotnetProj.Controllers
                 return NotFound($"Requested person is not present, with id {id}.");
             }
 
-            if (!string.IsNullOrEmpty(noIdPerson.Emails)){
-                checkEmail(noIdPerson.Emails);
-                person.Emails = noIdPerson.Emails;
+            if (!string.IsNullOrEmpty(noIdPerson.Email)){
+                checkEmail(noIdPerson.Email);
+                person.Email = noIdPerson.Email;
 			}
             if (!string.IsNullOrEmpty(noIdPerson.Name))
 			{
